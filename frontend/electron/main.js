@@ -12,26 +12,26 @@ const { spawn } = require("child_process");
 const path = require("path");
 const http = require("http");
 
-const isDev = process.env.ZERO_DEV === "1" || !app.isPackaged;
+// Dev mode only when explicitly launched against the Vite dev server.
+// `npm run desktop` and the packaged app both load the built bundle.
+const isDev = process.env.ZERO_DEV === "1";
 const BACKEND_PORT = 8000;
 
 let mainWindow = null;
 let backendProc = null;
 
+function backendDir() {
+  // Packaged: backend ships in resources/backend. Source: ../../backend.
+  return app.isPackaged
+    ? path.join(process.resourcesPath, "backend")
+    : path.join(__dirname, "..", "..", "backend");
+}
+
 function resolvePython() {
   // Prefer a project virtualenv if present, else fall back to system python.
   const venvDir = process.platform === "win32" ? "Scripts" : "bin";
-  const venvPython =
-    process.platform === "win32" ? "python.exe" : "python3";
-  const candidate = path.join(
-    __dirname,
-    "..",
-    "..",
-    "backend",
-    ".venv",
-    venvDir,
-    venvPython,
-  );
+  const venvPython = process.platform === "win32" ? "python.exe" : "python3";
+  const candidate = path.join(backendDir(), ".venv", venvDir, venvPython);
   try {
     require("fs").accessSync(candidate);
     return candidate;
@@ -41,10 +41,10 @@ function resolvePython() {
 }
 
 function startBackend() {
-  const backendDir = path.join(__dirname, "..", "..", "backend");
+  const dir = backendDir();
   const python = resolvePython();
   backendProc = spawn(python, ["main.py"], {
-    cwd: backendDir,
+    cwd: dir,
     env: { ...process.env, PYTHONUNBUFFERED: "1" },
   });
   backendProc.stdout.on("data", (d) => process.stdout.write(`[backend] ${d}`));

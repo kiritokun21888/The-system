@@ -11,7 +11,12 @@
     "preview": "vite preview",
     "electron": "electron .",
     "electron:dev": "concurrently \"vite\" \"wait-on tcp:5173 && electron .\"",
-    "start": "concurrently \"vite\" \"wait-on tcp:5173 && cross-env ZERO_DEV=1 electron .\""
+    "start": "concurrently \"vite\" \"wait-on tcp:5173 && cross-env ZERO_DEV=1 electron .\"",
+    "desktop": "npm run build && electron .",
+    "dist": "npm run build && electron-builder",
+    "dist:win": "npm run build && electron-builder --win",
+    "dist:mac": "npm run build && electron-builder --mac",
+    "dist:linux": "npm run build && electron-builder --linux"
   },
   "dependencies": {
     "@react-three/drei": "^9.108.0",
@@ -33,8 +38,58 @@
     "electron": "^31.0.2",
     "postcss": "^8.4.38",
     "tailwindcss": "^3.4.4",
+    "electron-builder": "^24.13.3",
     "typescript": "^5.4.5",
     "vite": "^5.3.1",
     "wait-on": "^7.2.0"
+  },
+  "build": {
+    "appId": "ai.zero.desktop",
+    "productName": "ZERO",
+    "directories": {
+      "output": "release"
+    },
+    "files": [
+      "dist/**/*",
+      "electron/**/*",
+      "package.json"
+    ],
+    "extraResources": [
+      {
+        "from": "../backend",
+        "to": "backend",
+        "filter": [
+          "**/*",
+          "!.venv/**",
+          "!data/**",
+          "!**/__pycache__/**",
+          "!**/*.pyc",
+          "!.env"
+        ]
+      }
+    ],
+    "win": {
+      "target": [
+        {
+          "target": "nsis",
+          "arch": ["x64"]
+        }
+      ]
+    },
+    "nsis": {
+      "oneClick": false,
+      "perMachine": false,
+      "allowToChangeInstallationDirectory": true,
+      "createDesktopShortcut": true,
+      "shortcutName": "ZERO"
+    },
+    "mac": {
+      "target": "dmg",
+      "category": "public.app-category.productivity"
+    },
+    "linux": {
+      "target": ["AppImage"],
+      "category": "Utility"
+    }
   }
 }
