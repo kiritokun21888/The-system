@@ -1,0 +1,186 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --bg-void: #02040a;
+  --bg-surface: #060d1a;
+  --bg-glass: rgba(0, 210, 255, 0.04);
+  --accent-primary: #00d2ff;
+  --accent-secondary: #7b2fff;
+  --accent-danger: #ff3366;
+  --accent-success: #00ff88;
+  --accent-warm: #ff9500;
+  --text-primary: #e8f4ff;
+  --text-dim: #4a7090;
+  --border-glow: rgba(0, 210, 255, 0.15);
+  --ease-zero: cubic-bezier(0.16, 1, 0.32, 1);
+}
+
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+html,
+body,
+#root {
+  height: 100%;
+  width: 100%;
+  overflow: hidden;
+}
+
+body {
+  background: var(--bg-void);
+  color: var(--text-primary);
+  font-family: "Inter", sans-serif;
+  -webkit-font-smoothing: antialiased;
+}
+
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  background: var(--border-glow);
+  border-radius: 4px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(0, 210, 255, 0.35);
+}
+
+.font-display {
+  font-family: "Orbitron", sans-serif;
+  letter-spacing: 0.08em;
+}
+.font-mono {
+  font-family: "JetBrains Mono", monospace;
+}
+
+/* --- Glassmorphism panel --- */
+.panel {
+  background: var(--bg-glass);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: 1px solid var(--border-glow);
+  border-radius: 16px;
+  transition: all 300ms var(--ease-zero);
+}
+.panel:hover {
+  box-shadow: 0 0 30px rgba(0, 210, 255, 0.2);
+  border-color: rgba(0, 210, 255, 0.3);
+}
+
+/* --- Active/focused panel: traveling light border --- */
+.panel-active {
+  position: relative;
+}
+.panel-active::before {
+  content: "";
+  position: absolute;
+  inset: -1px;
+  border-radius: 16px;
+  padding: 1px;
+  background: conic-gradient(
+    from var(--angle, 0deg),
+    transparent 0%,
+    var(--accent-primary) 15%,
+    transparent 30%
+  );
+  -webkit-mask:
+    linear-gradient(#fff 0 0) content-box,
+    linear-gradient(#fff 0 0);
+  -webkit-mask-composite: xor;
+  mask-composite: exclude;
+  animation: border-travel 4s linear infinite;
+}
+@property --angle {
+  syntax: "<angle>";
+  initial-value: 0deg;
+  inherits: false;
+}
+@keyframes border-travel {
+  to {
+    --angle: 360deg;
+  }
+}
+
+/* --- Loading: traveling cyan light --- */
+.loading-bar {
+  position: relative;
+  overflow: hidden;
+}
+.loading-bar::after {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: -40%;
+  width: 40%;
+  height: 100%;
+  background: linear-gradient(
+    90deg,
+    transparent,
+    rgba(0, 210, 255, 0.6),
+    transparent
+  );
+  animation: sweep 1.2s var(--ease-zero) infinite;
+}
+@keyframes sweep {
+  to {
+    left: 120%;
+  }
+}
+
+/* --- Glow text --- */
+.glow-cyan {
+  text-shadow: 0 0 12px rgba(0, 210, 255, 0.6);
+}
+
+/* --- Breathing pulse for idle states --- */
+@keyframes breathe {
+  0%,
+  100% {
+    opacity: 0.6;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 1;
+    transform: scale(1.04);
+  }
+}
+.breathe {
+  animation: breathe 2s ease-in-out infinite;
+}
+
+/* --- Nav --- */
+.nav-link {
+  color: var(--text-dim);
+  transition: all 300ms var(--ease-zero);
+  position: relative;
+}
+.nav-link:hover {
+  color: var(--text-primary);
+}
+.nav-link.active {
+  color: var(--accent-primary);
+}
+.nav-link.active::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: -6px;
+  height: 2px;
+  background: var(--accent-primary);
+  box-shadow: 0 0 8px var(--accent-primary);
+}
+
+input,
+textarea {
+  font-family: inherit;
+  outline: none;
+}
