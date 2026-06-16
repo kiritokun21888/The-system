@@ -1,0 +1,13 @@
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+.pytest_cache/
+.venv/
+venv/
+
+# Runtime artifacts produced by the system
+*.db
+swarm_state.db
+swarm.log
+failure_bundles/

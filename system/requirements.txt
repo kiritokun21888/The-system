@@ -1,0 +1,9 @@
+# Runtime
+PyYAML>=6.0
+# Optional: only needed when llm.backend == "anthropic" in config.yaml.
+# The system runs fully offline on the deterministic backend without it.
+anthropic>=0.40.0 ; extra == "anthropic"
+
+# Dev / test
+pytest>=7.4
+pytest-asyncio>=0.23

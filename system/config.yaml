@@ -1,0 +1,208 @@
+# =============================================================================
+# config.yaml — Single source of truth for the multi-agent code-gen system.
+#
+# Every threshold, limit, timeout, retry count, and model choice lives here.
+# There are NO hardcoded operational values anywhere else in the system.
+#
+# A new agent is added by:
+#   1. Creating agents/<name>.py implementing BaseAgent.
+#   2. Registering it under `agents:` below (class + module + settings).
+#   3. Adding its stage to `pipeline.order` if it participates in the main flow.
+# No changes to core logic are required.
+# =============================================================================
+
+system:
+  name: "code-gen-review-swarm"
+  # Number of concurrent pipeline workers pulling from the priority queue.
+  workers: 3
+  # Hard ceiling on total wall-clock seconds for a single task before the
+  # Timeout failure category fires and the task is checkpointed.
+  task_timeout_seconds: 120
+  # Where SQLite task state is persisted (horizontal scaling: swap for Redis).
+  state_backend: "sqlite"
+  state_path: "./swarm_state.db"
+  # Message queue backend. "asyncio" for local; design allows "redis"/"rabbitmq".
+  queue_backend: "asyncio"
+
+logging:
+  level: "INFO"
+  # "json" for structured machine-readable logs, "text" for human reading.
+  format: "json"
+  file: "./swarm.log"
+
+llm:
+  # Backend: "deterministic" runs fully offline (no API key, reproducible,
+  # used by the test suite and the default demo). "anthropic" calls the real API.
+  backend: "deterministic"
+  # Generation-grade model: used by Coder and TestWriter (full capability).
+  generation_model: "claude-opus-4-8"
+  # Validation-grade model: cheaper/faster, used by SpecParser and Reviewer.
+  validation_model: "claude-haiku-4-5"
+  max_tokens: 8000
+  # Adaptive thinking is the recommended mode for the 4.x family.
+  thinking: "adaptive"
+  request_timeout_seconds: 60
+  # Per-prompt response cache TTL (seconds) for the LLM layer.
+  prompt_cache_ttl_seconds: 600
+
+# -----------------------------------------------------------------------------
+# Router / orchestrator behaviour.
+# -----------------------------------------------------------------------------
+router:
+  # Default maximum retries per agent before escalation. Per-agent overrides
+  # live under each agent below.
+  max_retries: 3
+  # Quality score (0..1) an agent output must meet to advance.
+  default_quality_threshold: 0.75
+  # If true, on retry exhaustion the task is escalated to human review;
+  # if false, the task is aborted.
+  escalate_on_exhaustion: true
+
+# -----------------------------------------------------------------------------
+# Pipeline definition. `order` is the happy-path sequence of agent stages.
+# Adding/removing a stage here reconfigures the pipeline with no code changes.
+# -----------------------------------------------------------------------------
+pipeline:
+  order:
+    - spec_parser
+    - coder
+    - test_writer
+    - test_runner
+    - reviewer
+
+# -----------------------------------------------------------------------------
+# Feedback loops. Each loop names the agent it routes back to, the convergence
+# threshold, and the hard iteration cap (divergence protection).
+# -----------------------------------------------------------------------------
+feedback_loops:
+  test_fix_loop:
+    # Triggered when test_runner reports failing tests.
+    trigger_agent: "test_runner"
+    refine_agent: "coder"
+    max_iterations: 4
+    # Loop converges when this fraction of tests pass.
+    convergence_pass_rate: 1.0
+  review_refine_loop:
+    # Triggered when reviewer score is below threshold.
+    trigger_agent: "reviewer"
+    refine_agent: "coder"
+    max_iterations: 3
+    convergence_quality: 0.75
+
+# -----------------------------------------------------------------------------
+# Failure handling. Categories, retry/backoff, and alerting.
+# -----------------------------------------------------------------------------
+failure_handling:
+  transient:
+    # Exponential backoff base/seconds and max attempts for transient faults.
+    backoff_base_seconds: 1
+    backoff_factor: 2
+    max_attempts: 4
+  alerting:
+    # "log", "webhook", or "email". Multiple may be combined.
+    channels: ["log"]
+    webhook_url: ""
+    email_to: ""
+  # Directory where frozen critical/checkpoint context bundles are written.
+  context_bundle_dir: "./failure_bundles"
+
+# -----------------------------------------------------------------------------
+# Optimization layer.
+# -----------------------------------------------------------------------------
+optimization:
+  cache:
+    enabled: true
+    # Default TTL for agent-output cache (seconds).
+    default_ttl_seconds: 300
+    max_entries: 1024
+  parallel_execution:
+    # Groups of stages with no dependency on each other, run concurrently with
+    # asyncio. coder and test_writer both depend only on the spec, not on each
+    # other, so they fan out in parallel on the first pass. (See the dependency
+    # graph in README.md.) Parallelization is automatically disabled during
+    # refinement loops, where only the coder re-runs.
+    groups:
+      - ["coder", "test_writer"]
+  early_termination:
+    # If spec parser marks a task trivial AND reviewer would auto-pass,
+    # the system may skip the review stage. See orchestrator skip logic.
+    enabled: true
+  load_balancing:
+    # Agents listed here run multiple instances behind a round-robin dispatcher.
+    bottleneck_agents:
+      coder: 2
+      test_runner: 2
+
+# -----------------------------------------------------------------------------
+# Priority queue. Tasks enter with priority 1 (highest) .. 5 (lowest).
+# -----------------------------------------------------------------------------
+priority_queue:
+  default_priority: 3
+  levels: 5
+
+# -----------------------------------------------------------------------------
+# Per-agent configuration. The Registry instantiates each agent from these.
+# `module` + `class_name` make agents pluggable; `enabled: false` disables one.
+# -----------------------------------------------------------------------------
+agents:
+  spec_parser:
+    module: "agents.spec_parser"
+    class_name: "SpecParserAgent"
+    enabled: true
+    model_role: "validation"        # uses llm.validation_model
+    quality_threshold: 0.6
+    max_retries: 2
+    timeout_seconds: 30
+    cache_ttl_seconds: 600
+    instances: 1
+
+  coder:
+    module: "agents.coder"
+    class_name: "CoderAgent"
+    enabled: true
+    model_role: "generation"        # uses llm.generation_model
+    quality_threshold: 0.5          # coder output is validated downstream
+    max_retries: 3
+    timeout_seconds: 60
+    cache_ttl_seconds: 120
+    instances: 2
+
+  test_writer:
+    module: "agents.test_writer"
+    class_name: "TestWriterAgent"
+    enabled: true
+    model_role: "generation"
+    quality_threshold: 0.5
+    max_retries: 2
+    timeout_seconds: 45
+    cache_ttl_seconds: 120
+    instances: 1
+
+  test_runner:
+    module: "agents.test_runner"
+    class_name: "TestRunnerAgent"
+    enabled: true
+    model_role: "none"              # executes code; no LLM call
+    quality_threshold: 1.0          # all tests must pass to advance
+    max_retries: 1                  # re-running flaky tests once
+    timeout_seconds: 30
+    cache_ttl_seconds: 0            # never cache execution results
+    instances: 2
+
+  reviewer:
+    module: "agents.reviewer"
+    class_name: "ReviewerAgent"
+    enabled: true
+    model_role: "validation"
+    quality_threshold: 0.75
+    max_retries: 2
+    timeout_seconds: 45
+    cache_ttl_seconds: 120
+    instances: 1
+
+# -----------------------------------------------------------------------------
+# Monitoring / dashboard.
+# -----------------------------------------------------------------------------
+monitoring:
+  dashboard_enabled: true
+  refresh_seconds: 2
