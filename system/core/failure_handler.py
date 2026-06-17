@@ -56,6 +56,7 @@ class FailureHandler:
             level=config.get("logging.level", "INFO"),
             fmt=config.get("logging.format", "json"),
             file=config.get("logging.file"),
+            console=config.get("logging.console", True),
         )
         self._backoff_base = config.get("failure_handling.transient.backoff_base_seconds", 1)
         self._backoff_factor = config.get("failure_handling.transient.backoff_factor", 2)

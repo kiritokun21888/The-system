@@ -39,6 +39,7 @@ def get_logger(
     level: str = "INFO",
     fmt: str = "json",
     file: Optional[str] = None,
+    console: bool = True,
 ) -> logging.Logger:
     """Create or fetch a configured logger.
 
@@ -47,6 +48,8 @@ def get_logger(
         level: Logging level string (e.g. "INFO", "DEBUG").
         fmt: "json" or "text".
         file: Optional file path to also write logs to.
+        console: When False, no stderr handler is attached (logs go to the file
+            only). Used so the live dashboard owns the terminal.
 
     Returns:
         A configured ``logging.Logger`` (idempotent across calls).
@@ -63,14 +66,19 @@ def get_logger(
     else:
         formatter = logging.Formatter("%(asctime)s [%(levelname)s] %(name)s: %(message)s")
 
-    stream = logging.StreamHandler(sys.stderr)
-    stream.setFormatter(formatter)
-    logger.addHandler(stream)
+    if console:
+        stream = logging.StreamHandler(sys.stderr)
+        stream.setFormatter(formatter)
+        logger.addHandler(stream)
 
     if file:
         fh = logging.FileHandler(file)
         fh.setFormatter(formatter)
         logger.addHandler(fh)
+
+    # Always keep at least one handler so records aren't dropped with a warning.
+    if not logger.handlers:
+        logger.addHandler(logging.NullHandler())
 
     logger.propagate = False
     logger._swarm_configured = True  # type: ignore[attr-defined]

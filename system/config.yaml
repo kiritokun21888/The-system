@@ -29,6 +29,9 @@ logging:
   # "json" for structured machine-readable logs, "text" for human reading.
   format: "json"
   file: "./swarm.log"
+  # When false, logs are written only to the file (not the console). The `watch`
+  # command sets this false so the live dashboard owns the screen.
+  console: true
 
 llm:
   # Backend: "deterministic" runs fully offline (no API key, reproducible,
@@ -44,6 +47,10 @@ llm:
   request_timeout_seconds: 60
   # Per-prompt response cache TTL (seconds) for the LLM layer.
   prompt_cache_ttl_seconds: 600
+  # Artificial per-call latency for the deterministic backend (seconds). 0 keeps
+  # the offline demo instant; the `watch` command raises this so the live
+  # dashboard visibly updates as agents work.
+  simulated_latency_seconds: 0.0
 
 # -----------------------------------------------------------------------------
 # Router / orchestrator behaviour.
@@ -206,3 +213,7 @@ agents:
 monitoring:
   dashboard_enabled: true
   refresh_seconds: 2
+  # "append" prints a fresh dashboard snapshot each refresh (scrollback-friendly,
+  # used by `demo`). "live" clears and redraws in place, top-style (used by
+  # `watch`).
+  mode: "append"

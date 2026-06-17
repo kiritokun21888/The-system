@@ -158,6 +158,7 @@ class Orchestrator:
             level=config.get("logging.level", "INFO"),
             fmt=config.get("logging.format", "json"),
             file=config.get("logging.file"),
+            console=config.get("logging.console", True),
         )
         self.pipeline: list[str] = config.get("pipeline.order", [])
         self.task_timeout: float = config.get("system.task_timeout_seconds", 120)

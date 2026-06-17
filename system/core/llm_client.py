@@ -365,4 +365,6 @@ def build_llm_client(config: Any, cache: Optional[TTLCache] = None) -> LLMClient
             request_timeout=config.get("llm.request_timeout_seconds", 60),
         )
     # Default / fallback: deterministic offline backend.
-    return DeterministicLLMClient()
+    return DeterministicLLMClient(
+        latency=config.get("llm.simulated_latency_seconds", 0.0)
+    )

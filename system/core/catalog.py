@@ -250,6 +250,258 @@ CATALOG: dict[str, dict[str, Any]] = {
         ),
         "buggy_first": False,
     },
+    "sum_list": {
+        "detect": ["sum a list", "sum of a list", "sum the list", "sum of numbers"],
+        "spec": {
+            "function_name": "sum_list",
+            "signature": "def sum_list(numbers: list) -> float",
+            "description": "Return the sum of a list of numbers.",
+            "requirements": ["Empty list sums to 0"],
+            "examples": [{"input": [1, 2, 3], "output": 6}],
+            "task_key": "sum_list",
+            "trivial": True,
+        },
+        "code": (
+            "def sum_list(numbers: list) -> float:\n"
+            '    """Return the sum of a list of numbers."""\n'
+            "    total = 0\n"
+            "    for x in numbers:\n"
+            "        total += x\n"
+            "    return total\n"
+        ),
+        "buggy_code": "",
+        "tests": (
+            "from solution import sum_list\n\n"
+            "def test_sum():\n"
+            "    assert sum_list([1, 2, 3]) == 6\n"
+            "    assert sum_list([]) == 0\n"
+            "    assert sum_list([-1, 1]) == 0\n"
+        ),
+        "buggy_first": False,
+    },
+    "sort_numbers": {
+        "detect": ["sort a list", "sort the list", "sort numbers", "sort a list of"],
+        "spec": {
+            "function_name": "sort_numbers",
+            "signature": "def sort_numbers(nums: list) -> list",
+            "description": "Return a new list with the numbers sorted ascending.",
+            "requirements": ["Do not mutate the input", "Ascending order"],
+            "examples": [{"input": [3, 1, 2], "output": [1, 2, 3]}],
+            "task_key": "sort_numbers",
+            "trivial": False,
+        },
+        "code": (
+            "def sort_numbers(nums: list) -> list:\n"
+            '    """Return a new list with the numbers sorted ascending."""\n'
+            "    return sorted(nums)\n"
+        ),
+        "buggy_code": "",
+        "tests": (
+            "from solution import sort_numbers\n\n"
+            "def test_sort():\n"
+            "    assert sort_numbers([3, 1, 2]) == [1, 2, 3]\n"
+            "    assert sort_numbers([]) == []\n\n"
+            "def test_no_mutation():\n"
+            "    original = [2, 1]\n"
+            "    sort_numbers(original)\n"
+            "    assert original == [2, 1]\n"
+        ),
+        "buggy_first": False,
+    },
+    "count_vowels": {
+        "detect": ["vowel"],
+        "spec": {
+            "function_name": "count_vowels",
+            "signature": "def count_vowels(s: str) -> int",
+            "description": "Count the vowels (a, e, i, o, u) in a string, case-insensitive.",
+            "requirements": ["Case-insensitive", "Empty string returns 0"],
+            "examples": [{"input": "Hello", "output": 2}],
+            "task_key": "count_vowels",
+            "trivial": True,
+        },
+        "code": (
+            "def count_vowels(s: str) -> int:\n"
+            '    """Count the vowels in a string, case-insensitive."""\n'
+            "    return sum(1 for c in s.lower() if c in 'aeiou')\n"
+        ),
+        "buggy_code": "",
+        "tests": (
+            "from solution import count_vowels\n\n"
+            "def test_count():\n"
+            "    assert count_vowels('Hello') == 2\n"
+            "    assert count_vowels('') == 0\n"
+            "    assert count_vowels('AEIOU') == 5\n"
+            "    assert count_vowels('xyz') == 0\n"
+        ),
+        "buggy_first": False,
+    },
+    "fizzbuzz": {
+        "detect": ["fizzbuzz", "fizz buzz"],
+        "spec": {
+            "function_name": "fizzbuzz",
+            "signature": "def fizzbuzz(n: int) -> list",
+            "description": "Return the FizzBuzz sequence for 1..n as a list of strings.",
+            "requirements": [
+                "Multiples of 3 -> 'Fizz', of 5 -> 'Buzz', of 15 -> 'FizzBuzz'",
+                "Other numbers are their own string",
+            ],
+            "examples": [{"input": 5, "output": ["1", "2", "Fizz", "4", "Buzz"]}],
+            "task_key": "fizzbuzz",
+            "trivial": False,
+        },
+        "code": (
+            "def fizzbuzz(n: int) -> list:\n"
+            '    """Return the FizzBuzz sequence for 1..n as a list of strings."""\n'
+            "    out = []\n"
+            "    for i in range(1, n + 1):\n"
+            "        if i % 15 == 0:\n"
+            "            out.append('FizzBuzz')\n"
+            "        elif i % 3 == 0:\n"
+            "            out.append('Fizz')\n"
+            "        elif i % 5 == 0:\n"
+            "            out.append('Buzz')\n"
+            "        else:\n"
+            "            out.append(str(i))\n"
+            "    return out\n"
+        ),
+        "buggy_code": "",
+        "tests": (
+            "from solution import fizzbuzz\n\n"
+            "def test_fizzbuzz():\n"
+            "    assert fizzbuzz(5) == ['1', '2', 'Fizz', '4', 'Buzz']\n"
+            "    assert fizzbuzz(15)[-1] == 'FizzBuzz'\n"
+            "    assert fizzbuzz(0) == []\n"
+        ),
+        "buggy_first": False,
+    },
+    "anagram": {
+        "detect": ["anagram"],
+        "spec": {
+            "function_name": "is_anagram",
+            "signature": "def is_anagram(a: str, b: str) -> bool",
+            "description": "Return True if a and b are anagrams, ignoring case and spaces.",
+            "requirements": ["Case-insensitive", "Ignore spaces"],
+            "examples": [{"input": ["listen", "silent"], "output": True}],
+            "task_key": "anagram",
+            "trivial": False,
+        },
+        "code": (
+            "def is_anagram(a: str, b: str) -> bool:\n"
+            '    """Return True if a and b are anagrams, ignoring case and spaces."""\n'
+            "    na = sorted(a.replace(' ', '').lower())\n"
+            "    nb = sorted(b.replace(' ', '').lower())\n"
+            "    return na == nb\n"
+        ),
+        "buggy_code": "",
+        "tests": (
+            "from solution import is_anagram\n\n"
+            "def test_anagrams():\n"
+            "    assert is_anagram('listen', 'silent') is True\n"
+            "    assert is_anagram('Dormitory', 'Dirty Room') is True\n\n"
+            "def test_non_anagrams():\n"
+            "    assert is_anagram('abc', 'abd') is False\n"
+        ),
+        "buggy_first": False,
+    },
+    "binary_search": {
+        "detect": ["binary search"],
+        "spec": {
+            "function_name": "binary_search",
+            "signature": "def binary_search(arr: list, target: int) -> int",
+            "description": "Return the index of target in a sorted list, or -1 if absent.",
+            "requirements": [
+                "Input list is sorted ascending",
+                "Return -1 when not found",
+                "Run in O(log n)",
+            ],
+            "examples": [{"input": [[1, 2, 3, 4, 5], 4], "output": 3}],
+            "task_key": "binary_search",
+            "trivial": False,
+        },
+        "code": (
+            "def binary_search(arr: list, target: int) -> int:\n"
+            '    """Return the index of target in a sorted list, or -1 if absent."""\n'
+            "    lo, hi = 0, len(arr) - 1\n"
+            "    while lo <= hi:\n"
+            "        mid = (lo + hi) // 2\n"
+            "        if arr[mid] == target:\n"
+            "            return mid\n"
+            "        if arr[mid] < target:\n"
+            "            lo = mid + 1\n"
+            "        else:\n"
+            "            hi = mid - 1\n"
+            "    return -1\n"
+        ),
+        "buggy_code": (
+            "def binary_search(arr: list, target: int) -> int:\n"
+            '    """Return the index of target in a sorted list, or -1 if absent."""\n'
+            "    lo, hi = 0, len(arr) - 1\n"
+            "    while lo < hi:\n"  # bug: should be lo <= hi
+            "        mid = (lo + hi) // 2\n"
+            "        if arr[mid] == target:\n"
+            "            return mid\n"
+            "        if arr[mid] < target:\n"
+            "            lo = mid + 1\n"
+            "        else:\n"
+            "            hi = mid - 1\n"
+            "    return -1\n"
+        ),
+        "tests": (
+            "from solution import binary_search\n\n"
+            "def test_found():\n"
+            "    assert binary_search([1, 2, 3, 4, 5], 5) == 4\n"
+            "    assert binary_search([1, 2, 3, 4, 5], 1) == 0\n"
+            "    assert binary_search([7], 7) == 0\n\n"
+            "def test_not_found():\n"
+            "    assert binary_search([1, 2, 3], 4) == -1\n"
+            "    assert binary_search([], 1) == -1\n"
+        ),
+        "buggy_first": True,
+    },
+    "max_subarray": {
+        "detect": ["kadane", "maximum subarray", "max subarray"],
+        "spec": {
+            "function_name": "max_subarray",
+            "signature": "def max_subarray(nums: list) -> int",
+            "description": "Return the maximum sum of a contiguous subarray (Kadane's algorithm).",
+            "requirements": [
+                "Handle all-negative arrays correctly",
+                "Assume a non-empty input",
+            ],
+            "examples": [{"input": [-2, 1, -3, 4, -1, 2, 1, -5, 4], "output": 6}],
+            "task_key": "max_subarray",
+            "trivial": False,
+        },
+        "code": (
+            "def max_subarray(nums: list) -> int:\n"
+            '    """Return the maximum sum of a contiguous subarray (Kadane)."""\n'
+            "    best = cur = nums[0]\n"
+            "    for x in nums[1:]:\n"
+            "        cur = max(x, cur + x)\n"
+            "        best = max(best, cur)\n"
+            "    return best\n"
+        ),
+        "buggy_code": (
+            "def max_subarray(nums: list) -> int:\n"
+            '    """Return the maximum sum of a contiguous subarray (Kadane)."""\n'
+            "    best = 0\n"  # bug: fails on all-negative arrays
+            "    cur = 0\n"
+            "    for x in nums:\n"
+            "        cur = max(x, cur + x)\n"
+            "        best = max(best, cur)\n"
+            "    return best\n"
+        ),
+        "tests": (
+            "from solution import max_subarray\n\n"
+            "def test_mixed():\n"
+            "    assert max_subarray([-2, 1, -3, 4, -1, 2, 1, -5, 4]) == 6\n\n"
+            "def test_all_negative():\n"
+            "    assert max_subarray([-3, -1, -2]) == -1\n\n"
+            "def test_single():\n"
+            "    assert max_subarray([5]) == 5\n"
+        ),
+        "buggy_first": True,
+    },
 }
 
 

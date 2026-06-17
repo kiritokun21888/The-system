@@ -13,9 +13,10 @@ flipping one config value.
 
 ```
 python main.py demo                                   # run the built-in batch
+python main.py watch                                  # larger batch + live dashboard
 python main.py "Write a function to reverse a string" # run one task
 python main.py resume                                 # resume checkpointed tasks
-python -m pytest -q                                   # run the test suite (36 tests)
+python -m pytest -q                                   # run the test suite (54 tests)
 ```
 
 ---
@@ -279,8 +280,26 @@ exhausted. Unknown exceptions default to CRITICAL — nothing fails silently.
   `PriorityQueue` (`core/queue_manager.py`), not direct calls; the minimal
   `put`/`get`/`depth` interface swaps cleanly for Redis Queue / RabbitMQ.
 - **Monitoring** — every agent emits metrics (tasks/min, avg latency, error
-  rate, queue depth, tokens, cost); `core/metrics.py` renders a live terminal
-  dashboard.
+  rate, queue depth, active tasks, tokens, cost); `core/metrics.py` renders a
+  terminal dashboard. Two modes (`monitoring.mode`): `append` (snapshot per
+  refresh, used by `demo`) and `live` (top-style in-place redraw, used by
+  `watch`). The `watch` command routes logs to `swarm.log` (`logging.console:
+  false`) so the dashboard owns the screen, and adds a small simulated latency
+  so work is visible as it flows through the pipeline:
+  ```
+  ============================================================================
+   SWARM — LIVE  | 23:18:53 | uptime 1.6s | queue 11 | active 14
+     tasks: done 0 | escalated 0 | aborted 0 | submitted 14 | cost $0.0
+  ============================================================================
+   agent             proc  fail   err%  avg_lat   /min         $
+  ----------------------------------------------------------------------------
+   coder                3     0   0.0%    0.353      3   0.00000
+   reviewer             1     0   0.0%    0.266      1   0.00000
+   spec_parser          5     0   0.0%    0.355      5   0.00000
+   test_runner          2     1  50.0%    0.040      2   0.00000
+   test_writer          4     0   0.0%    0.246      4   0.00000
+  ============================================================================
+  ```
 - **Configuration** — **every** threshold, limit, timeout, retry count, and
   model choice lives in `config.yaml`. No hardcoded operational values anywhere.
 
@@ -313,7 +332,7 @@ system/
     failure_handler.py    # unified failure handling (5 categories)
     cache.py              # TTL cache
     llm_client.py         # pluggable LLM (deterministic | anthropic)
-    catalog.py            # offline task catalog (drives the deterministic backend)
+    catalog.py            # offline task catalog (13 tasks; drives the deterministic backend)
     json_util.py          # robust JSON extraction from model output
     load_balancer.py      # round-robin dispatcher for bottleneck agents
   models/
@@ -323,6 +342,7 @@ system/
     test_agents.py        # unit tests for every agent (incl. every failure path)
     test_routing.py       # integration tests for routing + feedback loops
     test_failure.py       # failure-scenario tests (every category)
+    test_catalog.py       # catalog consistency + prompt-resolution / collision tests
 ```
 
 ---
@@ -334,7 +354,8 @@ cd system
 pip install -r requirements.txt          # PyYAML (+ pytest for the suite)
 
 # Offline (default) — no API key needed:
-python main.py demo                       # 5 demo tasks: convergence, early-term, escalation
+python main.py demo                       # 6 demo tasks: convergence, early-term, escalation
+python main.py watch                      # 14-task batch with a live, in-place dashboard
 python main.py "Implement an is_prime primality test"
 
 # Real Claude API:
@@ -343,7 +364,7 @@ python main.py "Implement an is_prime primality test"
 python main.py "Write a function that flattens a nested list"
 
 # Tests:
-python -m pytest -q                       # 36 tests, ~1.5s, fully offline
+python -m pytest -q                       # 54 tests, ~2s, fully offline
 ```
 
 ### Adding a new agent (no core changes)

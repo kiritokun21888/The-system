@@ -59,6 +59,7 @@ class MetricsRegistry:
         self._lock = threading.Lock()
         self._agents: dict[str, AgentMetrics] = defaultdict(AgentMetrics)
         self._queue_depth_fn: Optional[Callable[[], int]] = None
+        self._tasks_submitted = 0
         self._tasks_completed = 0
         self._tasks_escalated = 0
         self._tasks_aborted = 0
@@ -96,6 +97,11 @@ class MetricsRegistry:
             if cache_hit:
                 m.cache_hits += 1
             m.recent_completions.append(time.time())
+
+    def record_task_submitted(self) -> None:
+        """Increment submitted task counter (used to gauge active tasks)."""
+        with self._lock:
+            self._tasks_submitted += 1
 
     def record_task_completed(self) -> None:
         """Increment completed task counter."""
@@ -143,9 +149,13 @@ class MetricsRegistry:
                 for name, m in self._agents.items()
             }
             total_cost = sum(m.total_cost for m in self._agents.values())
+            finished = self._tasks_completed + self._tasks_escalated + self._tasks_aborted
+            active = max(0, self._tasks_submitted - finished)
             return {
                 "uptime_seconds": round(time.time() - self._started, 1),
                 "queue_depth": self.queue_depth(),
+                "tasks_submitted": self._tasks_submitted,
+                "tasks_active": active,
                 "tasks_completed": self._tasks_completed,
                 "tasks_escalated": self._tasks_escalated,
                 "tasks_aborted": self._tasks_aborted,
@@ -153,21 +163,35 @@ class MetricsRegistry:
                 "agents": agents,
             }
 
-    def render_dashboard(self) -> str:
-        """Render an ASCII dashboard of current metrics for the terminal."""
+    def render_dashboard(self, title: str = "SWARM DASHBOARD") -> str:
+        """Render an ASCII dashboard of current metrics for the terminal.
+
+        Args:
+            title: Heading shown on the first line.
+
+        Returns:
+            A multi-line string ready to print.
+        """
         snap = self.snapshot()
+        clock = time.strftime("%H:%M:%S")
         lines = []
         lines.append("=" * 78)
         lines.append(
-            f" SWARM DASHBOARD  | uptime {snap['uptime_seconds']}s "
-            f"| queue {snap['queue_depth']} "
-            f"| done {snap['tasks_completed']} "
+            f" {title}  | {clock} | uptime {snap['uptime_seconds']}s "
+            f"| queue {snap['queue_depth']} | active {snap['tasks_active']}"
+        )
+        lines.append(
+            f"   tasks: done {snap['tasks_completed']} "
             f"| escalated {snap['tasks_escalated']} "
             f"| aborted {snap['tasks_aborted']} "
-            f"| ${snap['total_cost_usd']}"
+            f"| submitted {snap['tasks_submitted']} "
+            f"| cost ${snap['total_cost_usd']}"
         )
         lines.append("=" * 78)
-        header = f" {'agent':<16}{'proc':>6}{'fail':>6}{'err%':>7}{'avg_lat':>9}{'/min':>7}{'$':>10}"
+        header = (
+            f" {'agent':<16}{'proc':>6}{'fail':>6}{'err%':>7}"
+            f"{'avg_lat':>9}{'/min':>7}{'$':>10}"
+        )
         lines.append(header)
         lines.append("-" * 78)
         for name, a in sorted(snap["agents"].items()):
