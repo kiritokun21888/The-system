@@ -1,0 +1,302 @@
+@import "tailwindcss";
+
+/* ============================================================================
+   DESIGN SYSTEM — AI mission-control. Colors, typography, glass, glow effects.
+   ========================================================================== */
+@theme {
+  --color-void: #02040a;
+  --color-surface: #060d1a;
+  --color-glass: rgba(0, 210, 255, 0.04);
+  --color-cyan: #00d2ff;
+  --color-violet: #7b2fff;
+  --color-green: #00ff88;
+  --color-red: #ff3366;
+  --color-amber: #ff9500;
+  --color-text: #e8f4ff;
+  --color-dim: #4a7090;
+  --color-borderglow: rgba(0, 210, 255, 0.15);
+
+  --font-display: "Orbitron", sans-serif;
+  --font-body: "Inter", sans-serif;
+  --font-mono: "JetBrains Mono", monospace;
+}
+
+:root {
+  --bg-void: #02040a;
+  --bg-surface: #060d1a;
+  --bg-glass: rgba(0, 210, 255, 0.04);
+  --accent-cyan: #00d2ff;
+  --accent-violet: #7b2fff;
+  --accent-green: #00ff88;
+  --accent-red: #ff3366;
+  --accent-amber: #ff9500;
+  --text-primary: #e8f4ff;
+  --text-dim: #4a7090;
+  --border-glow: rgba(0, 210, 255, 0.15);
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body,
+#root {
+  height: 100%;
+  margin: 0;
+}
+
+body {
+  background: var(--bg-void);
+  color: var(--text-primary);
+  font-family: var(--font-body);
+  overflow: hidden;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* ---- Typography helpers ---- */
+.font-display {
+  font-family: var(--font-display);
+  letter-spacing: 0.06em;
+}
+.font-mono {
+  font-family: var(--font-mono);
+}
+
+/* ---- Glassmorphism panel ---- */
+.glass {
+  background: rgba(6, 13, 26, 0.55);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: 1px solid var(--border-glow);
+  border-radius: 16px;
+  transition: box-shadow 0.3s ease, transform 0.3s ease, border-color 0.3s ease;
+}
+.glass:hover {
+  box-shadow: 0 0 40px rgba(0, 210, 255, 0.2);
+  border-color: rgba(0, 210, 255, 0.35);
+}
+.glass-tight {
+  background: rgba(6, 13, 26, 0.45);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+  border: 1px solid var(--border-glow);
+  border-radius: 12px;
+}
+
+/* ---- Traveling border light for active panels ---- */
+.border-travel {
+  position: relative;
+}
+.border-travel::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  padding: 1px;
+  background: conic-gradient(
+    from var(--angle, 0deg),
+    transparent 0%,
+    var(--accent-cyan) 12%,
+    transparent 25%
+  );
+  -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+  -webkit-mask-composite: xor;
+  mask-composite: exclude;
+  animation: border-spin 4s linear infinite;
+  pointer-events: none;
+}
+@property --angle {
+  syntax: "<angle>";
+  initial-value: 0deg;
+  inherits: false;
+}
+@keyframes border-spin {
+  to {
+    --angle: 360deg;
+  }
+}
+
+/* ---- Glow text ---- */
+.glow-cyan {
+  text-shadow: 0 0 12px rgba(0, 210, 255, 0.7);
+}
+.glow-violet {
+  text-shadow: 0 0 12px rgba(123, 47, 255, 0.7);
+}
+
+/* ---- Pulse dot ---- */
+.pulse-dot {
+  position: relative;
+}
+.pulse-dot::after {
+  content: "";
+  position: absolute;
+  inset: -4px;
+  border-radius: 9999px;
+  background: currentColor;
+  opacity: 0.4;
+  animation: pulse-ring 1.8s cubic-bezier(0.4, 0, 0.2, 1) infinite;
+}
+@keyframes pulse-ring {
+  0% {
+    transform: scale(0.6);
+    opacity: 0.5;
+  }
+  100% {
+    transform: scale(2.4);
+    opacity: 0;
+  }
+}
+
+/* ---- Blinking cursor ---- */
+.blink-cursor::after {
+  content: "_";
+  margin-left: 2px;
+  animation: blink 1s step-end infinite;
+  color: var(--accent-cyan);
+}
+@keyframes blink {
+  50% {
+    opacity: 0;
+  }
+}
+
+/* ---- Scrollbars ---- */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  background: rgba(0, 210, 255, 0.2);
+  border-radius: 4px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(0, 210, 255, 0.4);
+}
+
+/* ---- Retro grid background (Magic UI style) ---- */
+.retro-grid {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  perspective: 200px;
+  opacity: 0.4;
+}
+.retro-grid::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  transform: rotateX(60deg);
+  background-image: linear-gradient(
+      to right,
+      rgba(0, 210, 255, 0.25) 1px,
+      transparent 0
+    ),
+    linear-gradient(to bottom, rgba(0, 210, 255, 0.25) 1px, transparent 0);
+  background-size: 48px 48px;
+  background-repeat: repeat;
+  animation: grid-scroll 18s linear infinite;
+  transform-origin: 100% 0 0;
+}
+@keyframes grid-scroll {
+  to {
+    transform: rotateX(60deg) translateY(48px);
+  }
+}
+
+/* ---- Animated dot grid background (Aceternity style) ---- */
+.dot-grid {
+  background-image: radial-gradient(
+    rgba(0, 210, 255, 0.12) 1px,
+    transparent 1px
+  );
+  background-size: 28px 28px;
+}
+
+/* ---- React Flow overrides ---- */
+.react-flow__attribution {
+  display: none;
+}
+.react-flow__controls {
+  background: rgba(6, 13, 26, 0.7) !important;
+  backdrop-filter: blur(12px);
+  border: 1px solid var(--border-glow) !important;
+  border-radius: 10px;
+  overflow: hidden;
+}
+.react-flow__controls-button {
+  background: transparent !important;
+  border-bottom: 1px solid var(--border-glow) !important;
+  color: var(--accent-cyan) !important;
+  fill: var(--accent-cyan) !important;
+}
+.react-flow__minimap {
+  background: rgba(2, 4, 10, 0.8) !important;
+  border: 1px solid var(--border-glow);
+  border-radius: 10px;
+}
+.react-flow__edge-path {
+  stroke-width: 2;
+}
+
+/* selection ring removed for custom nodes */
+.react-flow__node.selected,
+.react-flow__node:focus {
+  outline: none;
+}
+
+/* ---- Rendered markdown (memory drawer) ---- */
+.md-body .md-h {
+  font-family: var(--font-display);
+  color: var(--accent-cyan);
+  margin: 0.6em 0 0.3em;
+  font-size: 1em;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+.md-body .md-p {
+  margin: 0.4em 0;
+}
+.md-body .md-ul {
+  margin: 0.3em 0;
+  padding-left: 1.1em;
+  list-style: none;
+}
+.md-body .md-ul li::before {
+  content: "▸ ";
+  color: var(--accent-cyan);
+}
+.md-body .md-code {
+  font-family: var(--font-mono);
+  font-size: 0.85em;
+  background: rgba(0, 210, 255, 0.1);
+  color: var(--accent-cyan);
+  padding: 1px 5px;
+  border-radius: 4px;
+}
+.md-body .md-pre {
+  font-family: var(--font-mono);
+  font-size: 0.8em;
+  background: rgba(2, 4, 10, 0.7);
+  border: 1px solid var(--border-glow);
+  border-radius: 8px;
+  padding: 10px;
+  overflow-x: auto;
+  white-space: pre;
+}
+.md-body .md-link {
+  color: var(--accent-violet);
+  text-decoration: underline;
+}
+
+/* ---- line-clamp helpers ---- */
+.line-clamp-2 {
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}

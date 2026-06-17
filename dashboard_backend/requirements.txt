@@ -1,0 +1,7 @@
+# Dashboard backend (FastAPI bridge + Obsidian memory manager).
+# The core swarm deps come from ../system/requirements.txt.
+fastapi>=0.115
+uvicorn[standard]>=0.30
+watchdog>=4.0
+websockets>=12.0
+PyYAML>=6.0

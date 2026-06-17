@@ -1,0 +1,58 @@
+{
+  "name": "swarm-mission-control",
+  "version": "1.0.0",
+  "description": "Next-generation AI mission-control dashboard for the multi-agent swarm",
+  "private": true,
+  "type": "module",
+  "main": "electron/main.js",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "typecheck": "tsc --noEmit",
+    "preview": "vite preview",
+    "electron": "electron .",
+    "electron:dev": "concurrently -k \"vite\" \"wait-on tcp:5173 && cross-env VITE_DEV_SERVER=http://localhost:5173 electron .\"",
+    "electron:build": "vite build && electron-builder"
+  },
+  "dependencies": {
+    "@monaco-editor/react": "^4.6.0",
+    "@react-three/drei": "^9.114.0",
+    "@react-three/fiber": "^8.17.10",
+    "@tsparticles/react": "^3.0.0",
+    "@tsparticles/slim": "^3.5.0",
+    "@xyflow/react": "^12.3.5",
+    "clsx": "^2.1.1",
+    "d3": "^7.9.0",
+    "framer-motion": "^11.11.0",
+    "lucide-react": "^0.451.0",
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1",
+    "recharts": "^2.13.0",
+    "tailwind-merge": "^2.5.4",
+    "three": "^0.169.0",
+    "zustand": "^5.0.0"
+  },
+  "devDependencies": {
+    "@tailwindcss/vite": "^4.0.0",
+    "@types/d3": "^7.4.3",
+    "@types/node": "^22.7.5",
+    "@types/react": "^18.3.11",
+    "@types/react-dom": "^18.3.0",
+    "@types/three": "^0.169.0",
+    "@vitejs/plugin-react": "^4.3.2",
+    "concurrently": "^9.0.1",
+    "cross-env": "^7.0.3",
+    "electron": "^33.0.0",
+    "electron-builder": "^25.1.8",
+    "tailwindcss": "^4.0.0",
+    "typescript": "^5.6.3",
+    "vite": "^5.4.9",
+    "wait-on": "^8.0.1"
+  },
+  "build": {
+    "appId": "com.swarm.missioncontrol",
+    "productName": "Swarm Mission Control",
+    "files": ["dist/**/*", "electron/**/*"],
+    "directories": { "output": "release" }
+  }
+}

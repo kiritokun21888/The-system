@@ -11,3 +11,9 @@ venv/
 swarm_state.db
 swarm.log
 failure_bundles/
+
+# Dashboard build artifacts / runtime
+dashboard/node_modules/
+dashboard/dist/
+dashboard/release/
+dashboard_state.db
