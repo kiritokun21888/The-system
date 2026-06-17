@@ -12,6 +12,9 @@ import { AgentControl } from "@/pages/AgentControl";
 import { Performance } from "@/pages/Performance";
 import { Settings } from "@/pages/Settings";
 import { useWebSocket } from "@/hooks/useWebSocket";
+import { useAssistant } from "@/hooks/useAssistant";
+import { CommandBar } from "@/components/CommandBar";
+import { Notifications, StatsBar } from "@/components/Notifications";
 import { useUiStore, type ViewId } from "@/store/uiStore";
 
 // Electron's draggable-region CSS property isn't in the standard typings.
@@ -56,7 +59,8 @@ function TitleBar() {
 
 /** Root application shell. */
 export default function App() {
-  useWebSocket();
+  useWebSocket(); // legacy swarm visualization (simulation)
+  useAssistant(); // real assistant backend (commands, agents, stats)
   const view = useUiStore((s) => s.view);
   const setView = useUiStore((s) => s.setView);
 
@@ -78,6 +82,15 @@ export default function App() {
 
       <div className="relative z-10 flex h-full flex-col">
         <TitleBar />
+
+        {/* always-visible real command bar + notifications */}
+        <div className="flex items-center gap-3 px-4 pb-1 pt-1">
+          <div className="flex-1">
+            <CommandBar />
+          </div>
+          <Notifications />
+        </div>
+
         <div className="flex min-h-0 flex-1">
           <Sidebar />
           <main className="min-h-0 flex-1 overflow-hidden p-4">
@@ -95,6 +108,9 @@ export default function App() {
             </AnimatePresence>
           </main>
         </div>
+
+        {/* real system stats strip */}
+        <StatsBar />
       </div>
 
       <ConnectionOverlay />

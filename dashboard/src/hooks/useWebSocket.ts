@@ -12,6 +12,12 @@ import type {
 const WS_URL = import.meta.env.VITE_WS_URL ?? "ws://localhost:8000/ws";
 const MAX_BACKOFF = 16000;
 
+// Port 8000 now serves the real assistant backend (different protocol). The
+// legacy swarm-visualization pages run on the in-browser simulation so they
+// stay animated without misreading assistant events. The real, wired surface is
+// the CommandBar + Notifications + StatsBar (see useAssistant).
+const FORCE_MOCK = true;
+
 /** Route a single backend/mock event into the appropriate Zustand store. */
 function dispatch(type: string, data: unknown, ts?: number) {
   const ag = useAgentStore.getState();
@@ -77,6 +83,14 @@ export function useWebSocket() {
       mockRef.current?.stop();
       mockRef.current = null;
     };
+
+    if (FORCE_MOCK) {
+      startMock();
+      return () => {
+        closedRef.current = true;
+        stopMock();
+      };
+    }
 
     const connect = () => {
       if (closedRef.current) return;

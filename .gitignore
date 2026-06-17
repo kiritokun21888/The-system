@@ -17,3 +17,10 @@ dashboard/node_modules/
 dashboard/dist/
 dashboard/release/
 dashboard_state.db
+
+# Assistant runtime artifacts
+assistant/backend/system.db
+assistant/backend/config.json
+assistant/backend/memory/
+assistant/backend/models/
+assistant/backend/__pycache__/
