@@ -3,6 +3,7 @@ import { StatusPanel } from "@/components/panels/StatusPanel";
 import { AgentGraph } from "@/components/panels/AgentGraph";
 import { TaskFeed } from "@/components/panels/TaskFeed";
 import { Core3D } from "@/components/Core3D";
+import { ErrorBoundary } from "@/components/ErrorBoundary";
 import { useAgents } from "@/hooks/useAgents";
 
 /** Main dashboard: left status (30%), center live graph (40%), right feed (30%). */
@@ -24,7 +25,9 @@ export function Dashboard() {
 
       <div className="relative min-h-0">
         <div className="absolute right-3 top-3 z-10 h-28 w-28 opacity-90">
-          <Core3D active={anyActive} />
+          <ErrorBoundary silent label="core3d">
+            <Core3D active={anyActive} />
+          </ErrorBoundary>
         </div>
         <div className="pointer-events-none absolute left-4 top-4 z-10">
           <div className="font-display text-sm font-bold tracking-widest text-[var(--accent-cyan)] glow-cyan">

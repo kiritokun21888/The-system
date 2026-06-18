@@ -15,6 +15,7 @@ import { useWebSocket } from "@/hooks/useWebSocket";
 import { useAssistant } from "@/hooks/useAssistant";
 import { CommandBar } from "@/components/CommandBar";
 import { Notifications, StatsBar } from "@/components/Notifications";
+import { ErrorBoundary } from "@/components/ErrorBoundary";
 import { useUiStore, type ViewId } from "@/store/uiStore";
 
 // Electron's draggable-region CSS property isn't in the standard typings.
@@ -75,9 +76,11 @@ export default function App() {
 
   return (
     <div className="relative flex h-screen w-screen flex-col overflow-hidden bg-[var(--bg-void)]">
-      {/* ambient backgrounds */}
+      {/* ambient backgrounds — isolated so a GPU/WebGL failure can't blank the app */}
       <Spotlight />
-      <ParticleField />
+      <ErrorBoundary silent label="particles">
+        <ParticleField />
+      </ErrorBoundary>
       <GridBackground />
 
       <div className="relative z-10 flex h-full flex-col">
@@ -103,7 +106,7 @@ export default function App() {
                 transition={{ duration: 0.25 }}
                 className="h-full"
               >
-                {PAGES[view]}
+                <ErrorBoundary label="page">{PAGES[view]}</ErrorBoundary>
               </motion.div>
             </AnimatePresence>
           </main>

@@ -40,10 +40,38 @@ function CoreMesh({ active }: { active: boolean }) {
   );
 }
 
+/** Detect whether the browser/GPU can create a WebGL context. */
+function webglAvailable(): boolean {
+  try {
+    const canvas = document.createElement("canvas");
+    return !!(
+      window.WebGLRenderingContext &&
+      (canvas.getContext("webgl") || canvas.getContext("experimental-webgl"))
+    );
+  } catch {
+    return false;
+  }
+}
+
 /** A compact 3D core visualization for the dashboard header. */
 export function Core3D({ active = false }: { active?: boolean }) {
+  // Skip entirely on machines without WebGL (e.g. hardware acceleration off) so
+  // the canvas never throws and blanks anything.
+  if (!webglAvailable()) {
+    return (
+      <div className="flex h-full w-full items-center justify-center">
+        <div
+          className="h-16 w-16 rounded-full border-2"
+          style={{
+            borderColor: active ? "#00FF88" : "#00D2FF",
+            boxShadow: `0 0 24px ${active ? "#00FF88" : "#00D2FF"}66`,
+          }}
+        />
+      </div>
+    );
+  }
   return (
-    <Canvas camera={{ position: [0, 0, 5], fov: 45 }} dpr={[1, 2]} gl={{ antialias: true, alpha: true }}>
+    <Canvas camera={{ position: [0, 0, 5], fov: 45 }} dpr={[1, 1.5]} gl={{ antialias: true, alpha: true }}>
       <Suspense fallback={null}>
         <ambientLight intensity={0.3} />
         <Stars radius={40} depth={30} count={800} factor={3} saturation={0} fade speed={1} />
