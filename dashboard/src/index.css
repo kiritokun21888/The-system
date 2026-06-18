@@ -300,3 +300,13 @@ body {
   -webkit-box-orient: vertical;
   overflow: hidden;
 }
+
+/* ---- Phone preview: let the desktop layout be panned/zoomed on small screens ---- */
+@media (max-width: 820px) {
+  body {
+    overflow: auto;
+  }
+  #root {
+    min-width: 1024px; /* keep the desktop layout; phone users pan/pinch to explore */
+  }
+}
