@@ -1,25 +1,23 @@
 name: Deploy dashboard preview to GitHub Pages
 
-# Publishes the dashboard (simulation mode — no backend needed) as a public
-# website you can open on any device, including a phone.
+# Builds the dashboard (simulation mode — no backend needed) and publishes it to
+# a `gh-pages` branch, which GitHub Pages can serve as a public website you can
+# open on any device, including a phone.
 
 on:
   push:
     branches: ["claude/great-pasteur-maa3c7"]
-    paths: ["dashboard/**", ".github/workflows/deploy-dashboard.yml"]
   workflow_dispatch: {}
 
 permissions:
-  contents: read
-  pages: write
-  id-token: write
+  contents: write
 
 concurrency:
-  group: pages
+  group: pages-deploy
   cancel-in-progress: true
 
 jobs:
-  build:
+  build-and-deploy:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -29,22 +27,15 @@ jobs:
       - name: Install dependencies
         working-directory: dashboard
         env:
-          # The web build doesn't need the Electron binary — skip the big download.
           ELECTRON_SKIP_BINARY_DOWNLOAD: "1"
         run: npm install --no-audit --no-fund
       - name: Build
         working-directory: dashboard
         run: npm run build
-      - uses: actions/upload-pages-artifact@v3
+      - name: Publish to gh-pages branch
+        uses: peaceiris/actions-gh-pages@v4
         with:
-          path: dashboard/dist
-
-  deploy:
-    needs: build
-    runs-on: ubuntu-latest
-    environment:
-      name: github-pages
-      url: ${{ steps.deployment.outputs.page_url }}
-    steps:
-      - id: deployment
-        uses: actions/deploy-pages@v4
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_dir: ./dashboard/dist
+          publish_branch: gh-pages
+          force_orphan: true
